@@ -219,7 +219,7 @@ const ProductStudio: React.FC = () => {
     
     const initialDescription = project.chatHistory.find(m => m.sender === 'ai')?.text || '';
 
-        setIsLoading(true);
+    setIsLoading(true);
     setLoadingMessage('Generating manufacturing tech pack...');
     try {
       const techPack = await studioService.generateTechPack(project.finalSketch, initialDescription);
@@ -228,8 +228,36 @@ const ProductStudio: React.FC = () => {
     } catch (error) {
       console.error("Failed to generate tech pack:", error);
       alert(`There was an error generating the tech pack: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        } finally {
-            setIsLoading(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFindSuppliers = async () => {
+    if (!project || !project.techPack) return;
+    
+    setIsLoading(true);
+    setLoadingMessage('Searching for suppliers...');
+    try {
+      // Extract a summary from the tech pack for supplier search
+      const techPackSummary = project.techPack.replace(/<[^>]*>/g, ' ').substring(0, 1000);
+      const suppliersHtml = await studioService.findSuppliers(techPackSummary);
+      
+      // Add suppliers section to the tech pack
+      const updatedTechPack = project.techPack + `
+        <div style="margin-top: 40px; page-break-before: always;">
+          <h2>Potential Suppliers</h2>
+          <p>Based on your product specifications, here are potential suppliers to consider:</p>
+          ${suppliersHtml}
+        </div>
+      `;
+      
+      updateProjectState(project, { techPack: updatedTechPack });
+    } catch (error) {
+      console.error("Failed to find suppliers:", error);
+      alert(`There was an error finding suppliers: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -402,7 +430,14 @@ const ProductStudio: React.FC = () => {
             <h1 className="text-2xl font-bold text-black text-center">
               Tech Pack: {project.name}
             </h1>
-            <div className="w-32"></div>
+            <button
+              onClick={handleFindSuppliers}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm"
+              title="Find Suppliers"
+            >
+              <MagicWandIcon className="w-5 h-5"/>
+              <span>Find Suppliers</span>
+            </button>
           </div>
         
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 overflow-y-auto flex-grow max-w-none">

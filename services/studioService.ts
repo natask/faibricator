@@ -235,3 +235,28 @@ export const deleteProject = (id: string): void => {
     console.error("Failed to delete project from localStorage", error);
   }
 };
+
+// Find potential suppliers based on tech pack summary
+export const findSuppliers = async (techPackSummary: string): Promise<string> => {
+  try {
+    const response = await fetch('/api/gemini/suppliers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        techPackSummary: techPackSummary
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.suppliersHtml;
+  } catch (error) {
+    console.error("Error finding suppliers:", error);
+    throw new Error("Failed to find suppliers.");
+  }
+};
