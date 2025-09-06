@@ -175,17 +175,17 @@ const ProductStudio: React.FC = () => {
     const displayedImage = activeView === 'sketch' ? sketchImage : currentImages[activeImageIndex];
 
     return (
-        <div className="flex h-screen bg-slate-900 text-slate-100 font-sans">
-            <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 bg-black/20">
+        <div className="flex h-screen bg-white text-black font-sans">
+            <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
                 {!displayedImage && (
                     <div className="text-center">
                         <button
                             onClick={triggerFileInput}
-                            className="flex flex-col items-center justify-center w-80 h-80 border-2 border-dashed border-slate-700 rounded-2xl text-slate-400 hover:bg-slate-800/50 hover:border-slate-600 transition-all duration-300"
+                            className="flex flex-col items-center justify-center w-80 h-80 border-2 border-dashed border-gray-300 rounded-2xl text-gray-500 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300"
                         >
-                            <UploadIcon className="w-16 h-16 mb-4 text-slate-500" />
-                            <span className="text-xl font-semibold">Upload Product Image(s)</span>
-                            <span className="mt-1 text-sm text-slate-500">PNG, JPG, WEBP</span>
+                            <UploadIcon className="w-16 h-16 mb-4 text-gray-400" />
+                            <span className="text-xl font-semibold text-black">Upload Product Image(s)</span>
+                            <span className="mt-1 text-sm text-gray-500">PNG, JPG, WEBP</span>
                         </button>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" multiple />
                     </div>

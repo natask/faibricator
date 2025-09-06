@@ -48,52 +48,51 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onVote }) => {
 
   return (
     <>
-      <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-border/40 hover:border-border/60">
-        {/* Product Image */}
-        <div className="relative h-48 bg-muted overflow-hidden">
+      <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200">
+        {/* Product Image - Vercel style */}
+        <div className="relative h-48 bg-gray-100 overflow-hidden">
           {product.image_url ? (
             <img
               src={product.image_url}
               alt={product.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              <Package className="w-16 h-16" />
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <Package className="w-12 h-12" />
             </div>
           )}
-          <Badge className="absolute top-3 right-3 bg-foreground text-background hover:bg-foreground/90">
+          <div className="absolute top-3 right-3 bg-black text-white text-xs px-2 py-1 rounded-md flex items-center">
             <ThumbsUp className="w-3 h-3 mr-1" />
-            {product.current_votes} votes
-          </Badge>
+            {product.current_votes}
+          </div>
         </div>
 
-        <CardHeader className="pb-4">
-          <CardTitle className="line-clamp-2 text-lg font-semibold text-foreground">{product.title}</CardTitle>
-          <CardDescription className="line-clamp-3 text-muted-foreground">{product.description}</CardDescription>
-        </CardHeader>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-black mb-2 line-clamp-2">{product.title}</h3>
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2">{product.description}</p>
 
-        <CardContent className="space-y-4">
-          {/* Creator Info */}
+          <div className="space-y-3">
+          {/* Creator Info - Vercel style */}
           <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8 border border-border/40">
+            <Avatar className="h-8 w-8 border border-gray-200">
               <AvatarImage src={product.creator?.avatar_url} alt={product.creator?.name} />
-              <AvatarFallback className="text-xs bg-muted text-muted-foreground">
+              <AvatarFallback className="text-xs bg-gray-100 text-gray-600">
                 {product.creator?.name?.charAt(0) || '?'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-foreground">{product.creator?.name || 'Unknown'}</p>
-              <div className="flex items-center text-xs text-muted-foreground">
+              <p className="text-sm font-medium truncate text-black">{product.creator?.name || 'Unknown'}</p>
+              <div className="flex items-center text-xs text-gray-500">
                 <Calendar className="w-3 h-3 mr-1" />
                 {formatDate(product.created_at)}
               </div>
             </div>
           </div>
 
-          {/* Supplier Info */}
+          {/* Supplier Info - Vercel style */}
           <div className="flex items-center space-x-3">
-            <div className="h-6 w-6 rounded bg-muted border border-border/40 flex items-center justify-center">
+            <div className="h-6 w-6 rounded bg-gray-100 border border-gray-200 flex items-center justify-center">
               {product.supplier?.logo_url ? (
                 <img
                   src={product.supplier.logo_url}
@@ -101,36 +100,36 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onVote }) => {
                   className="h-6 w-6 rounded object-cover"
                 />
               ) : (
-                <Building2 className="w-4 h-4 text-muted-foreground" />
+                <Building2 className="w-4 h-4 text-gray-400" />
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-foreground">{product.supplier?.name || 'TBD'}</p>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-sm font-medium truncate text-black">{product.supplier?.name || 'TBD'}</p>
+              <p className="text-xs text-gray-500 truncate">
                 {product.supplier?.location || 'Location TBD'}
               </p>
             </div>
           </div>
 
-          {/* Min Order Quantity */}
-          <div className="bg-muted/50 border border-border/40 rounded-lg p-3">
+          {/* Min Order Quantity - Vercel style */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Min Order Quantity</span>
-              <Badge variant="secondary" className="text-sm font-semibold bg-foreground text-background">
+              <span className="text-sm text-gray-600">Min Order</span>
+              <span className="text-sm font-semibold bg-black text-white px-2 py-1 rounded">
                 {product.min_order_quantity}
-              </Badge>
+              </span>
             </div>
           </div>
-        </CardContent>
+          </div>
 
-        <CardFooter>
-          <Dialog open={showVoteModal} onOpenChange={setShowVoteModal}>
-            <DialogTrigger asChild>
-              <Button className="w-full bg-foreground text-background hover:bg-foreground/90" onClick={handleVoteClick}>
-                <ThumbsUp className="w-4 h-4 mr-2" />
-                Vote for this Product
-              </Button>
-            </DialogTrigger>
+          <div className="mt-4">
+            <Dialog open={showVoteModal} onOpenChange={setShowVoteModal}>
+              <DialogTrigger asChild>
+                <button className="w-full bg-black text-white hover:bg-gray-800 text-sm font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center" onClick={handleVoteClick}>
+                  <ThumbsUp className="w-4 h-4 mr-2" />
+                  Vote
+                </button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Vote for {product.title}</DialogTitle>
@@ -205,8 +204,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onVote }) => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </CardFooter>
-      </Card>
+          </div>
+        </div>
+      </div>
 
     </>
   );

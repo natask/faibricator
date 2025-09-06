@@ -187,77 +187,71 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Hero Section */}
-      <div className="border-b border-border/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+    <div className="min-h-screen bg-white text-black">
+      {/* Hero Section - Vercel style */}
+      <div className="border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-foreground">
+            <h1 className="text-4xl font-bold tracking-tight text-black mb-4">
               Product Dashboard
             </h1>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Discover and vote for innovative products. Help bring the next generation of products to life.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Card className="border-border/40 hover:border-border/60 transition-all duration-300 hover:shadow-lg animate-fade-in">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{products.length}</div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Active product ideas
-              </p>
-            </CardContent>
-          </Card>
+      {/* Stats Section - Vercel style */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Products</h3>
+              <Package className="h-4 w-4 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-black mb-1">{products.length}</div>
+            <p className="text-sm text-gray-500">
+              Active product ideas
+            </p>
+          </div>
           
-          <Card className="border-border/40 hover:border-border/60 transition-all duration-300 hover:shadow-lg animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{totalVotes}</div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Community engagement
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Votes</h3>
+              <TrendingUp className="h-4 w-4 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-black mb-1">{totalVotes}</div>
+            <p className="text-sm text-gray-500">
+              Community engagement
+            </p>
+          </div>
           
-          <Card className="border-border/40 hover:border-border/60 transition-all duration-300 hover:shadow-lg animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Top Product</CardTitle>
-              <Sparkles className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{topProduct.current_votes || 0}</div>
-              <p className="text-sm text-muted-foreground mt-1 truncate">
-                {topProduct.title || 'No products yet'}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Top Product</h3>
+              <Sparkles className="h-4 w-4 text-gray-400" />
+            </div>
+            <div className="text-3xl font-bold text-black mb-1">{topProduct.current_votes || 0}</div>
+            <p className="text-sm text-gray-500 truncate">
+              {topProduct.title || 'No products yet'}
+            </p>
+          </div>
         </div>
 
-        {/* Products Grid */}
-        <div className="space-y-8">
+        {/* Products Grid - Vercel style */}
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">Featured Products</h2>
-            <Badge variant="secondary" className="text-sm font-medium">
+            <h2 className="text-2xl font-bold text-black">Featured Products</h2>
+            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
               {products.length} products
-            </Badge>
+            </span>
           </div>
           
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
                   <ProductCardSkeleton />
                 </div>
               ))}
@@ -265,7 +259,7 @@ const Dashboard: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product, index) => (
-                <div key={product.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div key={product.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.05}s` }}>
                   <ProductCard
                     product={product}
                     onVote={handleVote}

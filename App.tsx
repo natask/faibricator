@@ -32,49 +32,48 @@ const App: React.FC = () => {
     if (currentView === 'login') return null;
 
     return (
-      <nav className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-30 w-full border-b border-gray-200 bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-background" />
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-black rounded-sm flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-white" />
                 </div>
-                <h1 className="text-xl font-semibold text-foreground">
+                <h1 className="text-lg font-semibold text-black">
                   Fabricator
                 </h1>
               </div>
               <div className="hidden md:flex space-x-1">
-                <Button
-                  variant={currentView === 'dashboard' ? 'secondary' : 'ghost'}
-                  size="sm"
+                <button
                   onClick={() => setCurrentView('dashboard')}
-                  className="flex items-center space-x-2 h-9 px-3"
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    currentView === 'dashboard'
+                      ? 'bg-gray-100 text-black'
+                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                  }`}
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </Button>
-                <Button
-                  variant={currentView === 'studio' ? 'secondary' : 'ghost'}
-                  size="sm"
+                  Dashboard
+                </button>
+                <button
                   onClick={() => setCurrentView('studio')}
-                  className="flex items-center space-x-2 h-9 px-3"
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    currentView === 'studio'
+                      ? 'bg-gray-100 text-black'
+                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                  }`}
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Product Studio</span>
-                </Button>
+                  Product Studio
+                </button>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
+            <div className="flex items-center space-x-3">
+              <button
                 onClick={() => setCurrentView('login')}
-                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground h-9 px-3"
+                className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-black transition-colors"
               >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -83,11 +82,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans relative">
-      {/* Subtle gradient overlay */}
-      <div className="fixed inset-0 bg-gradient-to-br from-background via-background to-muted/5 pointer-events-none z-0" />
+    <div className="min-h-screen bg-white text-black font-sans">
       {renderNavigation()}
-      <main className="flex-1 relative z-20">
+      <main className="flex-1">
         {renderCurrentView()}
       </main>
     </div>

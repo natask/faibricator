@@ -21,18 +21,135 @@ const ProductStudio: React.FC = () => {
     const [loadingMessage, setLoadingMessage] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [activeView, setActiveView] = useState<'edit' | 'sketch'>('edit');
+    const [isPasting, setIsPasting] = useState<boolean>(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const chatFileInputRef = useRef<HTMLInputElement>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
+    const uploadAreaRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // Utility function to convert clipboard data to File objects
+    const clipboardDataToFiles = async (clipboardData: DataTransfer): Promise<File[]> => {
+        const files: File[] = [];
+        
+        // Check for files in clipboard
+        if (clipboardData.files && clipboardData.files.length > 0) {
+            const imageFiles = Array.from(clipboardData.files).filter(file => file.type.startsWith('image/'));
+            files.push(...imageFiles);
+        }
+        
+        // Check for image data in clipboard items
+        const items = Array.from(clipboardData.items);
+        for (const item of items) {
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) {
+                    files.push(file);
+                }
+            }
+        }
+        
+        return files;
+    };
+
+    // Handle clipboard paste events
+    const handlePaste = useCallback(async (event: React.ClipboardEvent<HTMLDivElement>) => {
+        console.log('Paste event triggered!', event);
+        event.preventDefault();
+        
+        if (!event.clipboardData) {
+            console.log('No clipboard data found');
+            return;
+        }
+        
+        console.log('Clipboard data:', event.clipboardData);
+        console.log('Files in clipboard:', event.clipboardData.files);
+        console.log('Items in clipboard:', event.clipboardData.items);
+        
+        setIsPasting(true);
+        setError('');
+        
+        try {
+            const files = await clipboardDataToFiles(event.clipboardData);
+            console.log('Files extracted from clipboard:', files);
+            
+            if (files.length === 0) {
+                console.log('No valid image files found in clipboard');
+                setError('No valid image data found in clipboard.');
+                setIsPasting(false);
+                return;
+            }
+            
+            // Use the same logic as file upload
+            setOriginalFiles(files);
+            setError('');
+            setSketchImage(null);
+            setChatHistory([]);
+            setProductDescription('');
+            setActiveView('edit');
+            
+            const readerPromises = files.map(file => {
+                return new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            Promise.all(readerPromises).then(base64Strings => {
+                setCurrentImages(base64Strings);
+                setActiveImageIndex(0);
+                if (files.length > 0) {
+                    fetchDescription(base64Strings, files[0].type);
+                }
+                setIsPasting(false);
+            }).catch(err => {
+                console.error(err);
+                setError("Failed to read clipboard data.");
+                setIsPasting(false);
+            });
+        } catch (err) {
+            console.error('Error handling paste:', err);
+            setError('Failed to process clipboard data.');
+            setIsPasting(false);
+        }
+    }, []);
+
     useEffect(() => {
         scrollToBottom();
     }, [chatHistory]);
+
+    // Add global paste event listener
+    useEffect(() => {
+        const handleGlobalPaste = (event: ClipboardEvent) => {
+            console.log('Global paste event triggered!', event);
+            console.log('Current images length:', currentImages.length);
+            
+            // Check if the paste is happening in an input field or textarea
+            const target = event.target as HTMLElement;
+            const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true';
+            
+            if (isInputField) {
+                console.log('Paste in input field, ignoring for image upload');
+                return;
+            }
+            
+            console.log('Processing global paste event');
+            // Convert native ClipboardEvent to React ClipboardEvent
+            const reactEvent = event as unknown as React.ClipboardEvent<HTMLDivElement>;
+            handlePaste(reactEvent);
+        };
+
+        document.addEventListener('paste', handleGlobalPaste);
+        return () => {
+            document.removeEventListener('paste', handleGlobalPaste);
+        };
+    }, [handlePaste]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -175,25 +292,44 @@ const ProductStudio: React.FC = () => {
     const displayedImage = activeView === 'sketch' ? sketchImage : currentImages[activeImageIndex];
 
     return (
-        <div className="flex h-screen bg-slate-900 text-slate-100 font-sans">
+        <div className="flex h-screen bg-slate-900 text-slate-100 font-sans relative">
             <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 bg-black/20">
                 {!displayedImage && (
                     <div className="text-center">
-                        <button
+                        <div
+                            ref={uploadAreaRef}
+                            className={`flex flex-col items-center justify-center w-80 h-80 border-2 border-dashed rounded-2xl text-slate-400 transition-all duration-300 cursor-pointer ${
+                                isPasting 
+                                    ? 'border-cyan-500 bg-cyan-500/10' 
+                                    : 'border-slate-700 hover:bg-slate-800/50 hover:border-slate-600'
+                            }`}
                             onClick={triggerFileInput}
-                            className="flex flex-col items-center justify-center w-80 h-80 border-2 border-dashed border-slate-700 rounded-2xl text-slate-400 hover:bg-slate-800/50 hover:border-slate-600 transition-all duration-300"
+                            onPaste={handlePaste}
                         >
-                            <UploadIcon className="w-16 h-16 mb-4 text-slate-500" />
-                            <span className="text-xl font-semibold">Upload Product Image(s)</span>
-                            <span className="mt-1 text-sm text-slate-500">PNG, JPG, WEBP</span>
-                        </button>
+                            {isPasting ? (
+                                <>
+                                    <SpinnerIcon className="w-16 h-16 mb-4 text-cyan-500 animate-spin" />
+                                    <span className="text-xl font-semibold text-cyan-400">Processing pasted image...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <UploadIcon className="w-16 h-16 mb-4 text-slate-500" />
+                                    <span className="text-xl font-semibold">Upload Product Image(s)</span>
+                                    <span className="mt-1 text-sm text-slate-500">PNG, JPG, WEBP</span>
+                                    <span className="mt-2 text-xs text-slate-600">or paste from clipboard (Ctrl+V)</span>
+                                    <div className="mt-3 px-3 py-1 bg-slate-800/50 rounded-full text-xs text-slate-500 border border-slate-700">
+                                        💡 Try copying an image and pressing Ctrl+V
+                                    </div>
+                                </>
+                            )}
+                        </div>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" multiple />
                     </div>
                 )}
                 {displayedImage && (
                     <div className="relative w-full h-full flex flex-col items-center justify-center gap-4">
                         <div className="relative w-full flex-1 flex items-center justify-center">
-                          <img src={displayedImage} alt="Product" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"/>
+                          <img src={displayedImage} alt="Product" className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl bg-white/5 border border-slate-700/50"/>
                           {(isLoading && loadingMessage) && (
                               <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center rounded-lg backdrop-blur-sm">
                                   <SpinnerIcon className="w-12 h-12 text-cyan-500" />
@@ -240,6 +376,11 @@ const ProductStudio: React.FC = () => {
 
                 {currentImages.length > 0 && (
                     <div className="flex-1 flex flex-col overflow-hidden">
+                        {isPasting && (
+                            <div className="p-3 bg-cyan-500/20 border-b border-cyan-500/50 text-center">
+                                <p className="text-cyan-400 text-sm font-medium">📋 Processing pasted image...</p>
+                            </div>
+                        )}
                         <div className="p-6 border-b border-slate-700">
                             <h2 className="text-lg font-semibold text-cyan-400 mb-2">AI Product Analysis</h2>
                             {isLoading && !productDescription ? <p className="text-slate-400">Analyzing...</p> : <p className="text-slate-300 text-sm leading-relaxed">{productDescription}</p>}
@@ -282,14 +423,27 @@ const ProductStudio: React.FC = () => {
                              )}
                              <form onSubmit={handleEditPrompt} className="flex items-center space-x-3">
                                 <input type="file" ref={chatFileInputRef} onChange={handleStagedFileChange} className="hidden" accept="image/*" multiple />
-                                <button type="button" onClick={triggerChatFileInput} disabled={isLoading} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50">
+                                <button type="button" onClick={triggerChatFileInput} disabled={isLoading} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition-colors disabled:opacity-50" title="Upload images or paste from clipboard">
                                   <PaperclipIcon className="w-5 h-5" />
                                 </button>
                                 <input
                                     type="text"
                                     value={userInput}
                                     onChange={(e) => setUserInput(e.target.value)}
-                                    placeholder="e.g., 'make it metallic red'"
+                                    onPaste={async (e) => {
+                                        e.preventDefault();
+                                        if (!e.clipboardData) return;
+                                        
+                                        try {
+                                            const files = await clipboardDataToFiles(e.clipboardData);
+                                            if (files.length > 0) {
+                                                setStagedFiles(prev => [...prev, ...files]);
+                                            }
+                                        } catch (err) {
+                                            console.error('Error handling paste in chat:', err);
+                                        }
+                                    }}
+                                    placeholder="e.g., 'make it metallic red' or paste images"
                                     className="flex-1 bg-slate-700 border border-slate-600 rounded-full shadow-sm px-4 py-2 placeholder-slate-500 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm"
                                     disabled={isLoading}
                                 />
@@ -305,6 +459,16 @@ const ProductStudio: React.FC = () => {
                     </div>
                 )}
             </div>
+            
+            {/* Toast notification for paste detection */}
+            {isPasting && (
+                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-cyan-500 text-white px-6 py-3 rounded-lg shadow-lg border border-cyan-400">
+                    <div className="flex items-center gap-2">
+                        <SpinnerIcon className="w-5 h-5 animate-spin" />
+                        <span className="font-medium">Processing pasted image...</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

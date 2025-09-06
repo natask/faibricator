@@ -89,7 +89,24 @@ const LoginPageSupabase: React.FC<LoginPageProps> = ({ onLogin }) => {
 
             if (error) {
                 setError(error.message);
-            } else {
+            } else if (data.user) {
+                // Create user profile in the users table
+                const { error: profileError } = await supabase
+                    .from('users')
+                    .insert([
+                        {
+                            id: data.user.id,
+                            email: data.user.email,
+                            name: data.user.email?.split('@')[0] || 'User', // Use email prefix as name
+                            created_at: new Date().toISOString()
+                        }
+                    ]);
+
+                if (profileError) {
+                    console.error('Error creating user profile:', profileError);
+                    // Don't show this error to user as auth was successful
+                }
+
                 setError('Check your email for the confirmation link!');
             }
         } catch (err) {
@@ -112,8 +129,32 @@ const LoginPageSupabase: React.FC<LoginPageProps> = ({ onLogin }) => {
         checkSession();
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session) {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session && event === 'SIGNED_IN') {
+                // Create user profile if it doesn't exist (for OAuth users)
+                const { data: existingUser } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (!existingUser) {
+                    const { error: profileError } = await supabase
+                        .from('users')
+                        .insert([
+                            {
+                                id: session.user.id,
+                                email: session.user.email,
+                                name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+                                avatar_url: session.user.user_metadata?.avatar_url,
+                                created_at: new Date().toISOString()
+                            }
+                        ]);
+
+                    if (profileError) {
+                        console.error('Error creating user profile:', profileError);
+                    }
+                }
                 onLogin();
             }
         });
