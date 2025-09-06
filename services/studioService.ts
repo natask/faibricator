@@ -260,3 +260,34 @@ export const findSuppliers = async (techPackSummary: string): Promise<string> =>
     throw new Error("Failed to find suppliers.");
   }
 };
+
+// Generate product usage video via FAL Veo 3
+export const generateProductVideo = async (
+  prompt: string,
+  options?: { aspectRatio?: '16:9' | '9:16'; duration?: number; audioEnabled?: boolean }
+): Promise<{ url: string | any; requestId: string }> => {
+  try {
+    const response = await fetch('/api/video/veo3', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+        aspectRatio: options?.aspectRatio ?? '16:9',
+        duration: options?.duration ?? 5,
+        audioEnabled: options?.audioEnabled ?? true,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { url: data.data, requestId: data.requestId };
+  } catch (error) {
+    console.error('Error generating product video:', error);
+    throw new Error('Failed to generate product video.');
+  }
+};

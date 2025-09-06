@@ -7,6 +7,10 @@ import * as studioService from '../services/studioService';
 import StudioImageUploader from './StudioImageUploader';
 import StudioSpinner from './StudioSpinner';
 import { ArrowLeftIcon, MagicWandIcon, PlusIcon, TrashIcon, DocumentTextIcon } from './StudioIcons';
+import { MicrophoneIcon } from './icons/MicrophoneIcon';
+import { transcribeAudio } from '../services/speechService';
+import { startRecorder } from '../lib/recorder';
+
 
 type View = 'dashboard' | 'editor' | 'techpack';
 type ViewType = 'original' | 'latest' | 'sketch';
@@ -22,9 +26,12 @@ const ProductStudio: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [supplementalImages, setSupplementalImages] = useState<ImageFile[]>([]);
   const [currentView, setCurrentView] = useState<ViewType>('latest');
+  const [isRecording, setIsRecording] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string>('');
 
   const chatHistoryRef = useRef<HTMLDivElement>(null);
   const supplementalUploaderRef = useRef<HTMLInputElement>(null);
+  const recorderRef = useRef<{ rec: MediaRecorder; done: Promise<Blob>; mimeType: string } | null>(null);
 
   const handleLogout = () => {
     router.push('/');
@@ -137,12 +144,11 @@ const ProductStudio: React.FC = () => {
         }
   };
 
-    const handleEditPrompt = async (e: React.FormEvent) => {
-        e.preventDefault();
-    if (!chatInput.trim() || !project || !project.history.length) return;
+  const submitEdit = async (promptText: string) => {
+    if (!promptText.trim() || !project || !project.history.length) return;
 
     const mainImage = project.history[0];
-    const userMessage: SpeclyMessage = { sender: 'user', text: chatInput };
+    const userMessage: SpeclyMessage = { sender: 'user', text: promptText };
     const updatedChatHistory = [...project.chatHistory, userMessage];
     updateProjectState(project, { chatHistory: updatedChatHistory });
     setChatInput('');
@@ -150,7 +156,7 @@ const ProductStudio: React.FC = () => {
     setLoadingMessage('Reimagining your design...');
 
     try {
-      const { image: newImage, text: aiText } = await studioService.editImage(mainImage, supplementalImages, chatInput);
+      const { image: newImage, text: aiText } = await studioService.editImage(mainImage, supplementalImages, promptText);
       const newHistory = [newImage, ...project.history];
       setCurrentView('latest');
       
@@ -158,7 +164,6 @@ const ProductStudio: React.FC = () => {
       if (aiText) {
         finalChatHistory = [...finalChatHistory, { sender: 'ai', text: aiText }];
       } else {
-        // Add a simple confirmation message when AI doesn't provide text
         finalChatHistory = [...finalChatHistory, { sender: 'ai', text: "I've updated your design based on your request." }];
       }
 
@@ -175,6 +180,48 @@ const ProductStudio: React.FC = () => {
       setSupplementalImages([]);
       setIsLoading(false);
     }
+  };
+
+  const startRecording = async () => {
+    if (isRecording) return;
+    try {
+      const { rec, done, mimeType } = await startRecorder();
+      recorderRef.current = { rec, done, mimeType };
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Mic access/recording failed:', err);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!isRecording || !recorderRef.current) return;
+    const { rec, done, mimeType } = recorderRef.current;
+    try {
+      rec.stop();
+      setIsLoading(true);
+      setLoadingMessage('Transcribing voice...');
+      const blob = await done;
+      if (!blob.size) throw new Error('Empty recording blob');
+      const transcript = await transcribeAudio(blob, mimeType, 'en');
+      if (transcript && transcript.trim()) {
+        await submitEdit(transcript.trim());
+      }
+    } catch (err) {
+      console.error('Transcription failed:', err);
+    } finally {
+      try {
+        (rec as any).stream?.getTracks?.().forEach((t: MediaStreamTrack) => t.stop());
+      } catch {}
+      recorderRef.current = null;
+      setIsRecording(false);
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+  
+  const handleEditPrompt = async (e: React.FormEvent) => {
+        e.preventDefault();
+    await submitEdit(chatInput);
   };
   
   const handleGenerateFinalSketch = async () => {
@@ -228,6 +275,30 @@ const ProductStudio: React.FC = () => {
     } catch (error) {
       console.error("Failed to generate tech pack:", error);
       alert(`There was an error generating the tech pack: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateProductVideo = async () => {
+    if (!project || !project.history.length) return;
+
+    const initialDescription = project.chatHistory.find(m => m.sender === 'ai')?.text || '';
+    const basePrompt = initialDescription
+      ? `Create a short, fun video showing someone using this product: ${initialDescription}. Setting: lively, upbeat mood, candid shots, natural lighting.`
+      : `Create a short, fun video showing someone happily using this product in a real-life setting. Upbeat mood, candid shots, natural lighting.`;
+
+    setIsLoading(true);
+    setLoadingMessage('Generating product video...');
+    try {
+      const { url } = await studioService.generateProductVideo(basePrompt, { aspectRatio: '16:9', duration: 5, audioEnabled: true });
+      setVideoUrl(typeof url === 'string' ? url : (url?.video || url?.url || ''));
+      if (!url) {
+        alert('The video was generated but no URL was returned.');
+      }
+    } catch (error) {
+      console.error('Failed to generate product video:', error);
+      alert(`There was an error generating the video: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -488,6 +559,13 @@ const ProductStudio: React.FC = () => {
                     <span>View Tech Pack</span>
                   </button>
                 )}
+                <button
+                  onClick={handleGenerateProductVideo}
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm"
+                  title="Generate Product Video"
+                >
+                  <span>Generate Video</span>
+                </button>
                 <button 
                   onClick={handleGenerateFinalSketch} 
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-full transition duration-300 shadow-sm hover:shadow-md"
@@ -550,6 +628,16 @@ const ProductStudio: React.FC = () => {
                     />
                   </div>
                 </div>
+                {videoUrl && (
+                  <div className="bg-gray-100 rounded-xl p-4 border border-gray-200 mt-4">
+                    <h3 className="font-bold mb-3">Generated Video</h3>
+                    <video controls className="w-full rounded-lg border border-gray-300">
+                      <source src={videoUrl} />
+                      Your browser does not support the video tag.
+                    </video>
+                    <a href={videoUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm text-blue-600 hover:underline">Open in new tab</a>
+                  </div>
+                )}
               </div>
 
               {/* Right Pane */}
@@ -590,6 +678,15 @@ const ProductStudio: React.FC = () => {
 
                 <div className="p-4 border-t border-gray-200 shrink-0 bg-white/50 rounded-b-xl">
                   <form onSubmit={handleEditPrompt} className="flex gap-2 items-center">
+                    <button
+                      type="button"
+                      onClick={isRecording ? stopRecording : startRecording}
+                      className={`p-3 rounded-lg border transition ${isRecording ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}`}
+                      title={isRecording ? 'Stop recording' : 'Start voice input'}
+                      disabled={isLoading}
+                    >
+                      <MicrophoneIcon className="w-5 h-5" />
+                    </button>
                                 <input
                                     type="text"
                       value={chatInput}

@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "2.14.0",
+    "@fal-ai/client": "^1.6.2",
     "@google/genai": "^1.17.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -19,7 +21,7 @@
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "dotenv": "^17.2.2",
+    "dotenv": "17.2.2",
     "formidable": "^3.5.4",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.2",
