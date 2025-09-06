@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
-const API_KEY = process.env.API_KEY || process.env.GOOGLE_AI_API_KEY;
+const API_KEY = process.env.GOOGLE_AI_API_KEY;
 
 if (!API_KEY) {
-  console.error("API_KEY environment variable not set");
+  console.error("GOOGLE_AI_API_KEY environment variable not set");
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY! });
@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (!API_KEY) {
-    return res.status(500).json({ error: 'API key not configured' });
+    return res.status(500).json({ error: 'GOOGLE_AI_API_KEY not configured' });
   }
 
   try {
