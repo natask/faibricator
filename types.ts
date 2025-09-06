@@ -47,3 +47,30 @@ export interface Vote {
   product?: Product;
   user?: User;
 }
+
+// Specly types for the new studio functionality
+export interface ImageFile {
+  base64: string;
+  mimeType: string;
+  name: string;
+}
+
+export type SpeclyMessageSender = 'user' | 'ai';
+
+export interface SpeclyMessage {
+  sender: SpeclyMessageSender;
+  text: string;
+  image?: ImageFile;
+}
+
+export type TechPack = string;
+
+export interface SpeclyProject {
+  id: string;
+  name: string;
+  history: ImageFile[];
+  chatHistory: SpeclyMessage[];
+  createdAt: number;
+  finalSketch?: ImageFile | null;
+  techPack?: TechPack | null;
+}

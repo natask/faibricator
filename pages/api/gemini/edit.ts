@@ -1,6 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb', // Increase body size limit to handle base64 images
+    },
+  },
+};
+
 const API_KEY = process.env.GOOGLE_AI_API_KEY;
 
 if (!API_KEY) {
@@ -54,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     
     let newImageBase64 = '';
-    let textResponse = "No text response from AI.";
+    let textResponse = "";
 
     if (response.candidates && response.candidates.length > 0 && response.candidates[0].content?.parts) {
       for (const part of response.candidates[0].content.parts) {

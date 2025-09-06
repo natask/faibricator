@@ -1,6 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb', // Increase body size limit to handle base64 images
+    },
+  },
+};
+
 const API_KEY = process.env.GOOGLE_AI_API_KEY;
 
 if (!API_KEY) {
