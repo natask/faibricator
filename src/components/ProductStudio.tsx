@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import type { ChatMessage } from '@/types';
-import { generateDescription, editImage, generateSketch } from '@/services/apiClient';
+import { generateDescription, editImage, generateSketch } from '../services/geminiService';
 import { UploadIcon } from './icons/UploadIcon';
 import { MagicWandIcon } from './icons/MagicWandIcon';
 import { SpinnerIcon } from './icons/SpinnerIcon';
