@@ -16,10 +16,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
     const googleButtonRef = useRef<HTMLDivElement>(null);
     const isGoogleReady = typeof google !== 'undefined' && google.accounts;
-    const clientId = '426419412620-gb3iencb9ntn7j11d58c758og8ui86bo.apps.googleusercontent.com';
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '983563663483-akvu3hmiv0rj7r3b8okoscdui4ftojoo.apps.googleusercontent.com';
 
     const handleCredentialResponse = useCallback((response: any) => {
         console.log("Google Auth successful. Credential:", response.credential);
@@ -37,9 +38,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         onLogin();
     };
 
+    // Check for Google script loading
+    useEffect(() => {
+        const checkGoogleLoaded = () => {
+            if (typeof google !== 'undefined' && google.accounts) {
+                setIsGoogleLoaded(true);
+            } else {
+                // Check again after a short delay
+                setTimeout(checkGoogleLoaded, 100);
+            }
+        };
+        
+        checkGoogleLoaded();
+    }, []);
+
 
     useEffect(() => {
-        if (!isGoogleReady || !clientId) {
+        if (!isGoogleLoaded || !isGoogleReady || !clientId) {
             return;
         }
 
@@ -50,6 +65,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             });
 
             if (googleButtonRef.current) {
+                // Clear any existing button first
+                googleButtonRef.current.innerHTML = '';
                 google.accounts.id.renderButton(
                     googleButtonRef.current,
                     { theme: "outline", size: "large", type: 'standard', text: 'signin_with', shape: 'pill' }
@@ -64,7 +81,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 google.accounts.id.disableAutoSelect();
             }
         };
-    }, [handleCredentialResponse, isGoogleReady, clientId]);
+    }, [handleCredentialResponse, isGoogleLoaded, isGoogleReady, clientId]);
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-background">
@@ -128,12 +145,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                     </div>
 
                     <div className="flex justify-center">
-                        {clientId ? (
-                            <div ref={googleButtonRef}></div>
-                        ) : (
+                        {!clientId ? (
                             <div className="p-4 rounded-md bg-destructive/10 text-destructive border border-destructive/20">
                                 <p className="font-semibold text-sm">Google Sign-In Not Configured</p>
                             </div>
+                        ) : !isGoogleLoaded ? (
+                            <div className="p-4 rounded-md bg-muted/10 text-muted-foreground border border-muted/20">
+                                <p className="font-semibold text-sm">Loading Google Sign-In...</p>
+                            </div>
+                        ) : (
+                            <div ref={googleButtonRef}></div>
                         )}
                     </div>
                 </CardContent>

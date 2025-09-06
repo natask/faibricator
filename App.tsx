@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import LoginPage from './components/LoginPage';
+import LoginPageSupabase from './components/LoginPageSupabase';
 import ProductStudio from './components/ProductStudio';
 import Dashboard from './components/Dashboard';
 import { Button } from './src/components/components/ui/button';
@@ -18,13 +18,13 @@ const App: React.FC = () => {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'login':
-        return <LoginPage onLogin={handleLogin} />;
+        return <LoginPageSupabase onLogin={handleLogin} />;
       case 'dashboard':
         return <Dashboard />;
       case 'studio':
         return <ProductStudio />;
       default:
-        return <LoginPage onLogin={handleLogin} />;
+        return <LoginPageSupabase onLogin={handleLogin} />;
     }
   };
 
