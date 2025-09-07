@@ -227,11 +227,13 @@ const ProductStudio: React.FC = () => {
   const handleGenerateFinalSketch = async () => {
     if (!project || !project.history.length) return;
     
+    // Always use the latest generated image for the sketch
     const mainImage = project.history[0];
-    const initialDescription = project.chatHistory.find(m => m.sender === 'ai')?.text || '';
+    // Use the most recent AI description to align with the latest image
+    const initialDescription = [...project.chatHistory].reverse().find(m => m.sender === 'ai' && m.text)?.text || '';
 
     if (!initialDescription) {
-      alert("Could not find the initial product description to generate the sketch.");
+      alert("Could not find an AI description to generate the sketch.");
       return;
     }
         
@@ -264,7 +266,8 @@ const ProductStudio: React.FC = () => {
   const handleGenerateTechPack = async () => {
     if (!project || !project.finalSketch) return;
     
-    const initialDescription = project.chatHistory.find(m => m.sender === 'ai')?.text || '';
+    // Use the most recent AI description
+    const initialDescription = [...project.chatHistory].reverse().find(m => m.sender === 'ai' && m.text)?.text || '';
 
     setIsLoading(true);
     setLoadingMessage('Generating manufacturing tech pack...');
