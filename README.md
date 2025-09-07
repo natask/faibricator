@@ -1,24 +1,9 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+## Build and Deploy (Vercel)
 
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/1xLzy9XMctcAZ-YR8Lspzrj1a90tuKTv_
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
-
-# run locally
-
+- Install dependencies: `npm install`
+- Create `.env.local` with required keys (e.g., `GOOGLE_AI_API_KEY`)
+- Run locally: `npm run dev`
+- Build locally: `npm run build`
+- Deploy to Vercel:
+  - `vercel` (first time) or `vercel --prod` (production)
+  - Set environment variables in Vercel Project Settings
