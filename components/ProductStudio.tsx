@@ -119,7 +119,9 @@ const ProductStudio: React.FC = () => {
     setLoadingMessage('Analyzing your concept...');
     try {
       const base64 = await studioService.fileToBase64(file);
-      const newImage: ImageFile = { base64, mimeType: file.type, name: file.name };
+      let newImage: ImageFile = { base64, mimeType: file.type, name: file.name };
+      // Compress to avoid storage issues
+      newImage = await studioService.compressImage(newImage, { maxWidth: 1600, maxHeight: 1600, quality: 0.85 });
       
       const desc = await studioService.generateDescription(newImage);
 
@@ -156,7 +158,9 @@ const ProductStudio: React.FC = () => {
     setLoadingMessage('Reimagining your design...');
 
     try {
-      const { image: newImage, text: aiText } = await studioService.editImage(mainImage, supplementalImages, promptText);
+      const { image: editedImage, text: aiText } = await studioService.editImage(mainImage, supplementalImages, promptText);
+      // Compress edited image before saving
+      const newImage = await studioService.compressImage(editedImage, { maxWidth: 1600, maxHeight: 1600, quality: 0.85 });
       const newHistory = [newImage, ...project.history];
       setCurrentView('latest');
       

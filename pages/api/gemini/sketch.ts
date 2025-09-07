@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const imagePart = fileToGenerativePart(imageBase64, imageMimeType);
-    const prompt = "Generate a clean, black and white technical line drawing of this product. The sketch should be suitable for a manufacturing specification sheet. Focus on clear outlines, form, and key details. Remove all color, shading, and background elements. The output should be a single, clear product sketch.";
+    const prompt = "Create a manufacturing-spec technical line drawing from this exact image. STRICT REQUIREMENTS: 1) Exactly preserve pose, silhouette, proportions, perspective, and component layout; do not add/remove/reinterpret parts. 2) Pure black lines on white; no shading, gradients, colors, textures, text, arrows, dimensions, or background. 3) Use slightly thicker outer contour lines and thinner interior detail lines. 4) Output a single, centered, clean technical sketch suitable for a tech pack.";
     
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image-preview',

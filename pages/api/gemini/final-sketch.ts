@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     tempFilePath = imageFile.filepath;
     const imagePart = await fileToGenerativePart(imageFile);
     
-    const prompt = `Based on the provided product image and its description ("${description}"), generate a clean, black-and-white manufacturing specification sketch. This sketch should look like a technical line drawing, highlighting key components, dimensions, and materials callouts. It should be suitable for a tech pack.`;
+    const prompt = `Create a manufacturing-spec technical line drawing using the provided image as the single source of truth. STRICT REQUIREMENTS:\n\n1) Geometry fidelity: exactly preserve the image's pose, silhouette, proportions, perspective, and component layout. Do not add, remove, rearrange, stylize, or reinterpret any parts. No hallucinations.\n2) Rendering style: pure black lines on a white background. No shading, gradients, colors, textures, backgrounds, watermarks, text, arrows, or dimensions. Use a slightly thicker outer contour and thinner interior detail lines for clarity.\n3) Description usage: use the description ("${description}") only to decide which details to emphasize in the drawing, but never to alter geometry.\n4) Output: a single, centered, clean technical sketch suitable for inclusion in a tech pack.`;
     
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image-preview',

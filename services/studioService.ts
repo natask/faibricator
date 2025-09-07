@@ -107,6 +107,51 @@ const base64ToBlob = (base64: string, mimeType: string): Blob => {
   return new Blob([byteArray], { type: mimeType });
 };
 
+// Client-side image compression using Canvas
+export const compressImage = async (
+  image: ImageFile,
+  options?: { maxWidth?: number; maxHeight?: number; quality?: number; targetMimeType?: string }
+): Promise<ImageFile> => {
+  const maxWidth = options?.maxWidth ?? 1600;
+  const maxHeight = options?.maxHeight ?? 1600;
+  const quality = options?.quality ?? 0.85;
+  const targetMimeType = options?.targetMimeType ?? 'image/webp';
+
+  const dataUrl = `data:${image.mimeType};base64,${image.base64}`;
+  const imgEl = new Image();
+  imgEl.crossOrigin = 'anonymous';
+
+  await new Promise<void>((resolve, reject) => {
+    imgEl.onload = () => resolve();
+    imgEl.onerror = (e) => reject(e);
+    imgEl.src = dataUrl;
+  });
+
+  let targetWidth = imgEl.width;
+  let targetHeight = imgEl.height;
+  const widthRatio = maxWidth / targetWidth;
+  const heightRatio = maxHeight / targetHeight;
+  const ratio = Math.min(1, widthRatio, heightRatio);
+  targetWidth = Math.round(targetWidth * ratio);
+  targetHeight = Math.round(targetHeight * ratio);
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return image;
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  ctx.drawImage(imgEl, 0, 0, targetWidth, targetHeight);
+
+  const outDataUrl = canvas.toDataURL(targetMimeType, quality);
+  const base64Data = outDataUrl.split(',')[1];
+  const mime = outDataUrl.split(';')[0].split(':')[1];
+  return {
+    base64: base64Data,
+    mimeType: mime,
+    name: image.name.replace(/(\.[a-zA-Z0-9]+)?$/, '_cmp$1')
+  };
+};
+
 // Generate final manufacturing sketch
 export const generateFinalSketch = async (
   mainImage: ImageFile,
@@ -220,7 +265,62 @@ export const saveProject = (project: SpeclyProject): void => {
   } catch (error) {
     console.error("Failed to save project to localStorage", error);
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      alert("Could not save project. The browser storage is full. Please try deleting older projects.");
+      // Attempt progressive fallback saves: compress and trim
+      (async () => {
+        // Step 1: compress history images and trim chat history
+        try {
+          const fallbackProjects = [...projects];
+          const idx = fallbackProjects.findIndex(p => p.id === projectToSave.id);
+          if (idx > -1) {
+            const p = { ...fallbackProjects[idx] } as SpeclyProject;
+            p.history = await Promise.all(p.history.map(img => compressImage(img, { maxWidth: 1400, maxHeight: 1400, quality: 0.8 })));
+            p.chatHistory = p.chatHistory.slice(-30);
+            fallbackProjects[idx] = p;
+          }
+          localStorage.setItem(PROJECTS_KEY, JSON.stringify(fallbackProjects));
+          return;
+        } catch (e1) {}
+
+        // Step 2: drop large fields and compress further
+        try {
+          const fallbackProjects2 = [...projects];
+          const idx2 = fallbackProjects2.findIndex(p => p.id === projectToSave.id);
+          if (idx2 > -1) {
+            const p2 = { ...fallbackProjects2[idx2] } as SpeclyProject;
+            p2.history = await Promise.all(p2.history.map(img => compressImage(img, { maxWidth: 1000, maxHeight: 1000, quality: 0.65 })));
+            p2.chatHistory = p2.chatHistory.slice(-15);
+            // Large HTML can blow quota; store lazily by removing it from the list item
+            if (p2.techPack && p2.techPack.length > 200_000) {
+              p2.techPack = undefined as any;
+            }
+            fallbackProjects2[idx2] = p2;
+          }
+          localStorage.setItem(PROJECTS_KEY, JSON.stringify(fallbackProjects2));
+          return;
+        } catch (e2) {}
+
+        // Step 3: keep only latest and original heavily compressed, minimal chat
+        try {
+          const fallbackProjects3 = [...projects];
+          const idx3 = fallbackProjects3.findIndex(p => p.id === projectToSave.id);
+          if (idx3 > -1) {
+            const p3 = { ...fallbackProjects3[idx3] } as SpeclyProject;
+            const orig = p3.history[p3.history.length - 1];
+            const latest = p3.history[0];
+            const cLatest = await compressImage(latest, { maxWidth: 800, maxHeight: 800, quality: 0.55 });
+            const cOrig = await compressImage(orig, { maxWidth: 800, maxHeight: 800, quality: 0.55 });
+            p3.history = [cLatest, cOrig];
+            p3.chatHistory = p3.chatHistory.slice(-10);
+            p3.techPack = undefined as any;
+            p3.finalSketch = p3.finalSketch ? await compressImage(p3.finalSketch, { maxWidth: 800, maxHeight: 800, quality: 0.55 }) : null;
+            fallbackProjects3[idx3] = p3;
+          }
+          localStorage.setItem(PROJECTS_KEY, JSON.stringify(fallbackProjects3));
+          return;
+        } catch (e3) {}
+
+        alert("Storage is full and automatic compression couldn't save your latest changes. Please delete older projects or reduce image sizes.");
+      })();
     }
   }
 };
