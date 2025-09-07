@@ -56,18 +56,29 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onVote }) => {
               src={product.product_image}
               alt={product.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
             />
           ) : product.image_url ? (
             <img
               src={product.image_url}
               alt={product.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              <Package className="w-12 h-12" />
-            </div>
-          )}
+          ) : null}
+          <div className="w-full h-full flex items-center justify-center text-gray-400" style={{ display: 'none' }}>
+            <Package className="w-12 h-12" />
+          </div>
           <div className="absolute top-3 right-3 bg-black text-white text-xs px-2 py-1 rounded-md flex items-center">
             <ThumbsUp className="w-3 h-3 mr-1" />
             {product.current_votes || 0}
@@ -146,16 +157,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onVote }) => {
               <DialogTrigger asChild>
                 <button className="w-full bg-black text-white hover:bg-gray-800 text-sm font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center" onClick={handleVoteClick}>
                   <ThumbsUp className="w-4 h-4 mr-2" />
-                  Vote
+                  Commit Units
                 </button>
               </DialogTrigger>
             <DialogContent className="sm:max-w-md font-sans">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-black font-sans">
-                  Vote for {product.title}
+                  Commit to {product.title}
                 </DialogTitle>
                 <DialogDescription className="text-gray-700 font-medium">
-                  How many units would you like to order? This helps us gauge demand for production.
+                  How many units would you like to commit to? This helps us gauge demand for production.
                 </DialogDescription>
               </DialogHeader>
               
@@ -194,15 +205,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onVote }) => {
 
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600 font-sans">Your vote:</span>
+                    <span className="text-sm font-medium text-gray-600 font-sans">Your commitment:</span>
                     <span className="text-lg font-bold text-gray-900 font-sans">{voteQuantity} units</span>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600 font-sans">Progress to min order:</span>
+                      <span className="text-sm font-medium text-gray-600 font-sans">Total units committed:</span>
                       <span className="text-sm font-bold text-gray-900 font-sans">
-                        {product.current_votes || 0} / {product.min_order_quantity || 100}
+                        {product.products_ordered || 0} / {product.min_order_quantity || 100}
                       </span>
                     </div>
                     
@@ -211,16 +222,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onVote }) => {
                       <div 
                         className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                         style={{ 
-                          width: `${Math.min(100, ((product.current_votes || 0) / (product.min_order_quantity || 100)) * 100)}%` 
+                          width: `${Math.min(100, ((product.products_ordered || 0) / (product.min_order_quantity || 100)) * 100)}%` 
                         }}
                       ></div>
                     </div>
                     
                     <div className="text-xs text-gray-600 text-center">
-                      {(product.current_votes || 0) >= (product.min_order_quantity || 100) ? (
+                      {(product.products_ordered || 0) >= (product.min_order_quantity || 100) ? (
                         <span className="text-green-600 font-semibold">✓ Minimum order reached!</span>
                       ) : (
-                        <span>{(product.min_order_quantity || 100) - (product.current_votes || 0)} more units needed</span>
+                        <span>{(product.min_order_quantity || 100) - (product.products_ordered || 0)} more units needed</span>
                       )}
                     </div>
                   </div>
@@ -243,10 +254,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onVote }) => {
                   {isVoting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Voting...
+                      Committing...
                     </>
                   ) : (
-                    'Submit Vote'
+                    'Commit Units'
                   )}
                 </Button>
               </DialogFooter>

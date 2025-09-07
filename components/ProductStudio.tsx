@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { Zap } from 'lucide-react';
 import { SpeclyProject, ImageFile, SpeclyMessage } from '../types';
 import * as studioService from '../services/studioService';
+import { IndexedDBService } from '../services/indexedDBService';
 import StudioImageUploader from './StudioImageUploader';
 import StudioSpinner from './StudioSpinner';
 import { ArrowLeftIcon, MagicWandIcon, PlusIcon, TrashIcon, DocumentTextIcon } from './StudioIcons';
@@ -28,6 +29,7 @@ const ProductStudio: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('latest');
   const [isRecording, setIsRecording] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string>('');
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const chatHistoryRef = useRef<HTMLDivElement>(null);
   const supplementalUploaderRef = useRef<HTMLInputElement>(null);
@@ -372,6 +374,25 @@ const ProductStudio: React.FC = () => {
     setView('editor');
   };
 
+  const handlePublishToDashboard = async () => {
+    if (!project) return;
+    
+    setIsPublishing(true);
+    setLoadingMessage('Publishing product to dashboard...');
+    
+    try {
+      await IndexedDBService.init();
+      await IndexedDBService.createProductFromStudio(project);
+      alert('Product successfully published to dashboard! You can now view it on the main dashboard.');
+    } catch (error) {
+      console.error('Error publishing product:', error);
+      alert('Failed to publish product. Please try again.');
+    } finally {
+      setIsPublishing(false);
+      setLoadingMessage('');
+    }
+  };
+
   const getDisplayedImage = (): ImageFile | null => {
     if (!project) return null;
     switch (currentView) {
@@ -508,14 +529,24 @@ const ProductStudio: React.FC = () => {
             <h1 className="text-2xl font-bold text-black text-center">
               Tech Pack: {project.name}
             </h1>
-            <button
-              onClick={handleFindSuppliers}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm"
-              title="Find Suppliers"
-            >
-              <MagicWandIcon className="w-5 h-5"/>
-              <span>Find Suppliers</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleFindSuppliers}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm"
+                title="Find Suppliers"
+              >
+                <MagicWandIcon className="w-5 h-5"/>
+                <span>Find Suppliers</span>
+              </button>
+              <button
+                onClick={handlePublishToDashboard}
+                disabled={isPublishing}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg transition text-sm"
+                title="Publish to Dashboard"
+              >
+                <span>{isPublishing ? 'Publishing...' : 'Publish to Dashboard'}</span>
+              </button>
+            </div>
           </div>
         
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 overflow-y-auto flex-grow max-w-none">

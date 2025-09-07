@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "populate-db": "node scripts/populate-supabase.js"
+    "populate-db": "node scripts/populate-supabase-test-data.js"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "2.14.0",
