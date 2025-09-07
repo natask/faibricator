@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Product, User, Supplier, Vote } from '../types';
 import ProductCard from './ProductCard';
 import ProductCardSkeleton from './ProductCardSkeleton';
@@ -6,12 +8,21 @@ import { ProductService } from '../services/productService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../src/components/components/ui/card';
 import { Badge } from '../src/components/components/ui/badge';
 import { Button } from '../src/components/components/ui/button';
-import { TrendingUp, Package, Users, Sparkles } from 'lucide-react';
+import { TrendingUp, Package, Users, Sparkles, Zap } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleLogout = () => {
+    // Clear any stored authentication data
+    localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
+    // Redirect to login page
+    router.push('/');
+  };
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -62,15 +73,8 @@ const Dashboard: React.FC = () => {
         technical_package: '{"components": ["Raspberry Pi 4", "Zigbee Module", "WiFi 6", "Bluetooth 5.0"], "dimensions": "120x80x25mm", "power": "5V/3A"}',
         image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
         min_order_quantity: 50,
-        current_votes: 127
-      },
-      {
-        title: 'Wireless Charging Pad',
-        description: 'Fast wireless charging pad with LED indicators and temperature monitoring for safe charging.',
-        technical_package: '{"components": ["Qi Charging Module", "LED Strip", "Temperature Sensor", "USB-C Port"], "dimensions": "100x100x15mm", "power": "15W"}',
-        image_url: 'https://images.unsplash.com/photo-1609091839311-d5365f3a2b7a?w=400&h=300&fit=crop',
-        min_order_quantity: 100,
-        current_votes: 89
+        current_votes: 127,
+        products_ordered: 45
       },
       {
         title: 'IoT Weather Station',
@@ -78,7 +82,8 @@ const Dashboard: React.FC = () => {
         technical_package: '{"components": ["BME280 Sensor", "PMS5003 Air Quality", "ESP32", "Solar Panel"], "dimensions": "80x60x40mm", "power": "Solar + Battery"}',
         image_url: 'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=400&h=300&fit=crop',
         min_order_quantity: 25,
-        current_votes: 203
+        current_votes: 203,
+        products_ordered: 156
       },
       {
         title: 'Portable Bluetooth Speaker',
@@ -86,7 +91,8 @@ const Dashboard: React.FC = () => {
         technical_package: '{"components": ["40mm Drivers", "Bluetooth 5.0", "Li-ion Battery", "Waterproof Housing"], "dimensions": "150x80x80mm", "power": "20W"}',
         image_url: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=300&fit=crop',
         min_order_quantity: 200,
-        current_votes: 156
+        current_votes: 156,
+        products_ordered: 89
       },
       {
         title: 'Smart Plant Monitor',
@@ -94,7 +100,8 @@ const Dashboard: React.FC = () => {
         technical_package: '{"components": ["Soil Moisture Sensor", "Light Sensor", "Pump", "ESP32"], "dimensions": "120x80x60mm", "power": "USB + Solar"}',
         image_url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop',
         min_order_quantity: 75,
-        current_votes: 94
+        current_votes: 94,
+        products_ordered: 34
       },
       {
         title: 'LED Desk Lamp',
@@ -102,7 +109,8 @@ const Dashboard: React.FC = () => {
         technical_package: '{"components": ["LED Strip", "Touch Controls", "USB Port", "Adjustable Arm"], "dimensions": "300x200x50mm", "power": "USB-C 20W"}',
         image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
         min_order_quantity: 150,
-        current_votes: 78
+        current_votes: 78,
+        products_ordered: 23
       }
     ];
 
@@ -110,11 +118,10 @@ const Dashboard: React.FC = () => {
       id: `product-${index + 1}`,
       ...template,
       creator_id: fakeUsers[index % fakeUsers.length].id,
-      supplier_id: fakeSuppliers[index % fakeSuppliers.length].id,
+      products_ordered: template.products_ordered || 0,
       created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString(),
-      creator: fakeUsers[index % fakeUsers.length],
-      supplier: fakeSuppliers[index % fakeSuppliers.length]
+      creator: fakeUsers[index % fakeUsers.length]
     }));
   };
 
@@ -188,6 +195,46 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-black">
+      {/* Navigation Header */}
+      <nav className="sticky top-0 z-30 w-full border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-8">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-black rounded-sm flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-white" />
+                </div>
+                <h1 className="text-lg font-semibold text-black">
+                  Fabricator
+                </h1>
+              </div>
+              <div className="hidden md:flex space-x-1">
+                <Link
+                  href="/dashboard"
+                  className="px-3 py-2 text-sm font-medium rounded-md transition-colors bg-gray-100 text-black"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/studio"
+                  className="px-3 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-black hover:bg-gray-50"
+                >
+                  Product Studio
+                </Link>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-black transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section - Vercel style */}
       <div className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

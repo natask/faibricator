@@ -112,17 +112,6 @@ async function setupDatabase() {
           current_votes: 127
         },
         {
-          id: '750e8400-e29b-41d4-a716-446655440001',
-          title: 'Wireless Charging Pad',
-          description: 'Fast wireless charging pad with LED indicators and temperature monitoring for safe charging.',
-          technical_package: '{"components": ["Qi Charging Module", "LED Strip", "Temperature Sensor", "USB-C Port"], "dimensions": "100x100x15mm", "power": "15W"}',
-          image_url: 'https://images.unsplash.com/photo-1609091839311-d5365f3a2b7a?w=400&h=300&fit=crop',
-          creator_id: '550e8400-e29b-41d4-a716-446655440002',
-          supplier_id: '650e8400-e29b-41d4-a716-446655440001',
-          min_order_quantity: 100,
-          current_votes: 89
-        },
-        {
           id: '750e8400-e29b-41d4-a716-446655440002',
           title: 'IoT Weather Station',
           description: 'Compact weather monitoring device with sensors for temperature, humidity, pressure, and air quality.',

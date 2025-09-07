@@ -24,17 +24,31 @@ export interface Product {
   id: string;
   title: string;
   description: string;
-  technical_package: string; // JSON string or file path
-  image_url?: string;
+  
+  // Images
+  product_image?: string; // Base64 or URL
+  image_url?: string; // Fallback image URL for backward compatibility
+  sketch_image?: string; // Base64 or URL of manufacturing sketch
+  
+  // Specifications
+  tech_specs?: any; // Technical package from studio (JSONB)
+  gemini_specs?: any; // Final Gemini-generated specifications (JSONB)
+  
+  // Suppliers
+  supplier_list?: any[]; // List of potential suppliers (JSONB array)
+  
+  // Creator and ordering
   creator_id: string;
-  supplier_id: string;
   min_order_quantity: number;
   current_votes: number;
+  products_ordered: number;
+  
+  // Timestamps
   created_at: string;
   updated_at: string;
+  
   // Relations
   creator?: User;
-  supplier?: Supplier;
 }
 
 export interface Vote {

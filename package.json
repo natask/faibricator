@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "populate-db": "node scripts/populate-supabase.js"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "2.14.0",
